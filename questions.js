@@ -1,9 +1,8 @@
-const inquirer = require("inquirer")
 const db = require('./db/db.js');
 
 const mainMenu = [
     {
-      type: 'list',
+      type: 'rawlist',
       name: 'mainMenuOption',
       message: 'What would you like to do?',
       choices: [
@@ -52,24 +51,57 @@ const mainMenu = [
       message: 'View all roles:',
       choices: async () => {
         try {
-          // Use a SQL query to fetch role details from the database
           const [rows] = await db.query(`
             SELECT r.id AS roleId, r.title AS roleTitle, r.salary, d.name AS departmentName
             FROM role r
             JOIN department d ON r.department_id = d.id
           `);
   
-          // Map the rows to create choices with role information
           const roleChoices = rows.map((role) => ({
             value: role.roleId,
             name: `${role.roleTitle} (Role ID: ${role.roleId}) - Department: ${role.departmentName} - Salary: ${role.salary}`,
           }));
   
-          // Return the array of choices for the list
           return roleChoices;
         } catch (error) {
           console.error('Error fetching roles:', error);
           return ['Error fetching roles.'];
+        }
+      },
+    },
+  ];
+
+  const viewAllEmployees = [
+    {
+      type: 'list',
+      name: 'viewAllEmployees',
+      message: 'View all employees:',
+      choices: async () => {
+        try {
+          const [rows] = await db.query(`SELECT 
+            e.id AS employeeId, 
+            e.first_name AS firstName, 
+            e.last_name AS lastName,
+            r.title AS jobTitle, 
+            d.name AS departmentName, 
+            r.salary,
+            CONCAT(m.first_name, ' ', m.last_name) AS managerName
+          FROM employee e
+          LEFT JOIN role r ON e.role_id = r.id
+          LEFT JOIN department d ON r.department_id = d.id
+          LEFT JOIN employee m ON e.manager_id = m.id;`);
+
+          const employeeChoices = rows.map((employee) => ({
+            value: employee.employeeId,
+            name: `ID: ${employee.employeeId} - ${employee.firstName} ${employee.lastName} 
+                   | Job Title: ${employee.jobTitle} | Department: ${employee.departmentName} 
+                   | Salary: ${employee.salary} | Manager: ${employee.managerName || 'None'}`,
+          }));
+          
+          return employeeChoices;
+        } catch (error) {
+          console.error('Error fetching employees:', error);
+          return ['Error fetching employees.'];
         }
       },
     },
@@ -86,9 +118,9 @@ const exitConfirmation = [
   ];
 
   module.exports = {
-    viewAllDepartments,
-    exitConfirmation,
     mainMenu,
+    viewAllDepartments,
     viewAllRoles,
-
+    viewAllEmployees,
+    exitConfirmation,
   };
