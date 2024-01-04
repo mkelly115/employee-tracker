@@ -21,7 +21,7 @@ async function mainMenu() {
       case 'View all departments':
         await viewAllDepartments();
         break;
-      // Add cases for other menu options
+        
       case 'Exit':
         console.log('Exiting the application.');
         break;

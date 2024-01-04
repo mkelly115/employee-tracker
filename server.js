@@ -9,11 +9,9 @@ const db = require('./db/db.js');
 // Function to handle the main menu
 async function mainMenu() {
   try {
-    console.log('Before main menu prompt');
-    const answers = await inquirer.prompt(prompts.mainMenu);
-    console.log('User selected:', answers.mainMenuOption);
+    const mainMenuResponse = await inquirer.prompt(prompts.mainMenu);
 
-    switch (answers.mainMenuOption) {
+    switch (mainMenuResponse.mainMenuOption) {
       case 'View all departments':
         await viewAllDepartments();
         break;
@@ -23,22 +21,26 @@ async function mainMenu() {
       case 'View all employees':
         await viewAllEmployees();
         break;
-      case 'Add a department':
-        break;
       case 'Exit':
         await exitApplication();
         break;
     }
+
+    console.log('User selected:', mainMenuResponse.mainMenuOption);
   } catch (error) {
-    console.error('Error in mainMenu:', error);
+    console.error('Error in handleUserInput:', error);
   }
 }
 
 // Function to view all departments
 async function viewAllDepartments() {
   try {
-    const answers = await inquirer.prompt(prompts.viewAllDepartments);
-    console.log('Selected department ID:', answers.viewAllDepartments);
+    const viewAllDepartmentsResponse = await inquirer.prompt(prompts.viewAllDepartments);
+     if (viewAllDepartmentsResponse.viewAllDepartments === 'mainMenu') {
+      console.log('Returning to the main menu...');
+      mainMenu();
+      return;
+     }
   } catch (error) {
     console.error('Error in viewAllDepartments:', error);
   }
@@ -47,22 +49,37 @@ async function viewAllDepartments() {
 // Function to view all roles
 async function viewAllRoles() {
   try {
-    const answers = await inquirer.prompt(prompts.viewAllRoles);
-    console.log('Selected role ID:', answers.viewAllRoles);
+    const viewAllRolesResponse = await inquirer.prompt(prompts.viewAllRoles);
+
+    // Check if the user selected "Return to Main Menu"
+    if (viewAllRolesResponse.viewAllRoles === 'mainMenu') {
+      console.log('Returning to the main menu...');
+      mainMenu();
+      return;
+    }
+
+    // Handle the logic for other choices
+    console.log(`Selected role ID: ${viewAllRolesResponse.viewAllRoles}`);
+    console.log('User selected: View all roles');
   } catch (error) {
     console.error('Error in viewAllRoles:', error);
   }
-}
+};
 
 // Function to view all employees
 async function viewAllEmployees() {
   try {
-    const answers = await inquirer.prompt(prompts.viewAllEmployees);
-    console.log('Selected employee ID:', answers.showAllEmployees);
+    const viewAllEmployeesResponse = await inquirer.prompt(prompts.viewAllEmployees);
+   
+    if (viewAllEmployeesResponse.viewAllEmployees === "mainMenu") {
+      console.log("Returning to the main menu...")
+      mainMenu()
+      return;
+    }
   } catch (error) {
     console.error('Error in viewAllEmployees:', error);
   }
-}
+};
 
 // Function to exit the application
 async function exitApplication() {
