@@ -21,6 +21,9 @@ async function mainMenu() {
       case 'View all employees':
         await viewAllEmployees();
         break;
+      case 'Add a department':
+        await addDepartment();
+        break;
       case 'Exit':
         await exitApplication();
         break;
@@ -51,14 +54,12 @@ async function viewAllRoles() {
   try {
     const viewAllRolesResponse = await inquirer.prompt(prompts.viewAllRoles);
 
-    // Check if the user selected "Return to Main Menu"
     if (viewAllRolesResponse.viewAllRoles === 'mainMenu') {
       console.log('Returning to the main menu...');
       mainMenu();
       return;
     }
 
-    // Handle the logic for other choices
     console.log(`Selected role ID: ${viewAllRolesResponse.viewAllRoles}`);
     console.log('User selected: View all roles');
   } catch (error) {
@@ -80,6 +81,23 @@ async function viewAllEmployees() {
     console.error('Error in viewAllEmployees:', error);
   }
 };
+
+    // Adds a new Department to the SQL library
+async function addDepartment() {
+  try {
+    const addDepartmentResponse = await inquirer.prompt(prompts.addDepartmentPrompt);
+    const newDepartmentName = addDepartmentResponse.newDepartmentName;
+
+    await prompts.addNewDepartment(newDepartmentName);
+    console.log(`Department "${newDepartmentName}" added successfully.`);
+
+    // Continue back to the main menu
+    mainMenu();
+  } catch (error) {
+    console.error('Error adding department:', error);
+  }
+}
+
 
 // Function to exit the application
 async function exitApplication() {

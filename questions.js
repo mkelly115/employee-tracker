@@ -1,6 +1,7 @@
 const db = require('./db/db.js');
 const Table = require('cli-table');
 
+
 const mainMenu = [
     {
       type: 'list',
@@ -55,6 +56,17 @@ const mainMenu = [
       },
     },
   ];
+
+  async function addNewDepartment(departmentName) {
+    try {
+      const [result] = await db.execute('INSERT INTO department (name) VALUES (?)', [departmentName]);
+      console.log(`New department "${departmentName}" added. Department ID: ${result.insertId}`);
+      return result.insertId;
+    } catch (error) {
+      console.error('Error adding new department:', error);
+      throw error;
+    }
+  }
 
   const viewAllRoles = [
     {
@@ -152,6 +164,11 @@ const mainMenu = [
     },
   ];
   
+  const addDepartmentPrompt = {
+    type: 'input',
+    name: 'newDepartmentName',
+    message: 'Please enter the new Department Name:',
+  };
 
 const exitConfirmation = [
     {
@@ -165,7 +182,9 @@ const exitConfirmation = [
   module.exports = {
     mainMenu,
     viewAllDepartments,
+    addNewDepartment,
     viewAllRoles,
     viewAllEmployees,
+    addDepartmentPrompt,
     exitConfirmation,
   };
