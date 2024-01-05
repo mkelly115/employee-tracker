@@ -125,16 +125,6 @@ const mainMenu = [
             colWidths: [15, 40, 30, 30, 15, 40],
           });
   
-          // rows.forEach((employee) => {
-          //   table.push([
-          //     employee.employeeId,
-          //     `${employee.firstName} ${employee.lastName}`,
-          //     employee.jobTitle,
-          //     employee.departmentName,
-          //     employee.salary,
-          //     employee.managerName || 'None',
-          //   ]);
-          // });
           rows.forEach((employee) => {
             table.push([
               employee.employeeId,
@@ -181,7 +171,6 @@ const mainMenu = [
     }
   }
 
-// Below is test for the add employee function - do during class
 const addEmployeePrompt = [
   {
     type: 'input',
@@ -209,8 +198,8 @@ const addEmployeePrompt = [
   }
 ];
 
-
-async function addEmployee(returnToMainMenuCallback) {
+// uses a callback function to ask the user if they wish to return to the main menu
+async function addEmployee() {
   try {
     const employeeData = await inquirer.prompt([...addEmployeePrompt]);
     console.log('Employee Data:', employeeData);
@@ -223,24 +212,21 @@ async function addEmployee(returnToMainMenuCallback) {
 
     console.log(`Employee ${employeeData.firstName} ${employeeData.lastName} added successfully. Employee ID: ${result.insertId}`);
 
-    // Ask the user if they want to return to the main menu
-    const returnToMainMenu = await inquirer.prompt([
-      {
-        type: 'confirm',
-        name: 'returnToMainMenu',
-        message: 'Do you want to return to the main menu?',
-        default: true,
-      },
-    ]);
+    // const returnToMainMenu = await inquirer.prompt([
+    //   {
+    //     type: 'confirm',
+    //     name: 'returnToMainMenu',
+    //     message: 'Do you want to return to the main menu?',
+    //     default: true,
+    //   },
+    // ]);
 
-    if (returnToMainMenu.returnToMainMenu) {
-      // If the user wants to return to the main menu, call the provided callback function
-      returnToMainMenuCallback();
-    } else {
-      // If the user doesn't want to return to the main menu, exit the application
-      console.log('Exiting the application.');
-      process.exit(0);
-    }
+    // if (returnToMainMenu.returnToMainMenu) {
+    //   returnToMainMenuCallback();
+    // } else {
+    //   console.log('Exiting the application.');
+    //   process.exit(0);
+    // }
 
   } catch (error) {
     console.error('Error adding employee:', error);
@@ -259,11 +245,38 @@ const addRolePrompt = [
     message: 'Enter the salary for the role:',
   },
   {
-    type: 'input',
-    name: 'departmentName',
-    message: 'Enter the department for the role:',
+    type: 'list',
+    name: 'department',
+    message: 'Select the department for the role:',
+    choices: async () => {
+      try {
+        const [rows] = await db.query('SELECT id, name FROM department');
+        return rows.map(department => ({ name: department.name, value: department.id }));
+      } catch (error) {
+        console.error('Error fetching departments:', error);
+        return [{ name: 'Error fetching departments.', value: 'error' }];
+      }
+    },
   },
 ];
+
+// calls mainmenu() within server.js switch 
+const addRole = async () => {
+  try {
+    const roleData = await inquirer.prompt(addRolePrompt);
+    console.log('Role Data:', roleData); 
+
+    const [result] = await db.execute('INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)', [
+      roleData.title,
+      roleData.salary,
+      roleData.department,
+    ]);
+
+    console.log(`Role ${roleData.title} added successfully. Role ID: ${result.insertId}`);
+  } catch (error) {
+    console.error('Error adding role:', error);
+  }
+};
 
 const exitConfirmation = [
     {
@@ -282,6 +295,7 @@ const exitConfirmation = [
     viewAllEmployees,
     addDepartmentPrompt,
     addRolePrompt,
+    addRole,
     addEmployee,
     addEmployeePrompt,
     exitConfirmation,

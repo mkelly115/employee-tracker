@@ -25,7 +25,12 @@ async function mainMenu() {
         await addDepartment();
         break;
       case 'Add an employee':
-        await prompts.addEmployee(mainMenu);
+        await prompts.addEmployee();
+        mainMenu();
+        break;
+      case 'Add a role':
+        await prompts.addRole();
+        mainMenu();
         break;
       case 'Update an employee role':
         await updateEmployeeRole();
