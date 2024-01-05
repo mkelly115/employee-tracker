@@ -24,6 +24,12 @@ async function mainMenu() {
       case 'Add a department':
         await addDepartment();
         break;
+      case 'Add an employee':
+        await prompts.addEmployee(mainMenu);
+        break;
+      case 'Update an employee role':
+        await updateEmployeeRole();
+        break;
       case 'Exit':
         await exitApplication();
         break;
@@ -31,7 +37,7 @@ async function mainMenu() {
 
     console.log('User selected:', mainMenuResponse.mainMenuOption);
   } catch (error) {
-    console.error('Error in handleUserInput:', error);
+    console.error('Error in mainMenu:', error);
   }
 }
 
@@ -39,11 +45,11 @@ async function mainMenu() {
 async function viewAllDepartments() {
   try {
     const viewAllDepartmentsResponse = await inquirer.prompt(prompts.viewAllDepartments);
-     if (viewAllDepartmentsResponse.viewAllDepartments === 'mainMenu') {
+    if (viewAllDepartmentsResponse.viewAllDepartments === 'mainMenu') {
       console.log('Returning to the main menu...');
       mainMenu();
       return;
-     }
+    }
   } catch (error) {
     console.error('Error in viewAllDepartments:', error);
   }
@@ -71,7 +77,7 @@ async function viewAllRoles() {
 async function viewAllEmployees() {
   try {
     const viewAllEmployeesResponse = await inquirer.prompt(prompts.viewAllEmployees);
-   
+
     if (viewAllEmployeesResponse.viewAllEmployees === "mainMenu") {
       console.log("Returning to the main menu...")
       mainMenu()
@@ -82,7 +88,7 @@ async function viewAllEmployees() {
   }
 };
 
-    // Adds a new Department to the SQL library
+// Adds a new Department to the SQL library
 async function addDepartment() {
   try {
     const addDepartmentResponse = await inquirer.prompt(prompts.addDepartmentPrompt);

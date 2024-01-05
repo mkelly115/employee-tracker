@@ -1,5 +1,6 @@
 const db = require('./db/db.js');
 const Table = require('cli-table');
+const inquirer = require('inquirer');
 
 
 const mainMenu = [
@@ -56,17 +57,6 @@ const mainMenu = [
       },
     },
   ];
-
-  async function addNewDepartment(departmentName) {
-    try {
-      const [result] = await db.execute('INSERT INTO department (name) VALUES (?)', [departmentName]);
-      console.log(`New department "${departmentName}" added. Department ID: ${result.insertId}`);
-      return result.insertId;
-    } catch (error) {
-      console.error('Error adding new department:', error);
-      throw error;
-    }
-  }
 
   const viewAllRoles = [
     {
@@ -135,13 +125,23 @@ const mainMenu = [
             colWidths: [15, 40, 30, 30, 15, 40],
           });
   
+          // rows.forEach((employee) => {
+          //   table.push([
+          //     employee.employeeId,
+          //     `${employee.firstName} ${employee.lastName}`,
+          //     employee.jobTitle,
+          //     employee.departmentName,
+          //     employee.salary,
+          //     employee.managerName || 'None',
+          //   ]);
+          // });
           rows.forEach((employee) => {
             table.push([
               employee.employeeId,
               `${employee.firstName} ${employee.lastName}`,
-              employee.jobTitle,
-              employee.departmentName,
-              employee.salary,
+              employee.jobTitle || 'N/A',
+              employee.departmentName || 'N/A', 
+              employee.salary || 'N/A',
               employee.managerName || 'None',
             ]);
           });
@@ -170,6 +170,101 @@ const mainMenu = [
     message: 'Please enter the new Department Name:',
   };
 
+  async function addNewDepartment(departmentName) {
+    try {
+      const [result] = await db.execute('INSERT INTO department (name) VALUES (?)', [departmentName]);
+      console.log(`New department "${departmentName}" added. Department ID: ${result.insertId}`);
+      return result.insertId;
+    } catch (error) {
+      console.error('Error adding new department:', error);
+      throw error;
+    }
+  }
+
+// Below is test for the add employee function - do during class
+const addEmployeePrompt = [
+  {
+    type: 'input',
+    name: 'firstName',
+    message: 'Enter the first name of the employee:',
+  },
+  {
+    type: 'input',
+    name: 'lastName',
+    message: 'Enter the last name of the employee:',
+  },
+  {
+    type: 'list',
+    name: 'role',
+    message: 'Select the employee role:',
+    choices: async () => {
+      try {
+        const [rows] = await db.query('SELECT id, title FROM role');
+        return rows.map(role => ({ name: role.title, value: role.id }));
+      } catch (error) {
+        console.error('Error fetching roles:', error);
+        return [{ name: 'Error fetching roles.', value: 'error' }];
+      }
+    },
+  }
+];
+
+
+async function addEmployee(returnToMainMenuCallback) {
+  try {
+    const employeeData = await inquirer.prompt([...addEmployeePrompt]);
+    console.log('Employee Data:', employeeData);
+
+    const [result] = await db.execute('INSERT INTO employee (first_name, last_name, role_id) VALUES (?, ?, ?)', [
+      employeeData.firstName,
+      employeeData.lastName,
+      employeeData.role,
+    ]);
+
+    console.log(`Employee ${employeeData.firstName} ${employeeData.lastName} added successfully. Employee ID: ${result.insertId}`);
+
+    // Ask the user if they want to return to the main menu
+    const returnToMainMenu = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'returnToMainMenu',
+        message: 'Do you want to return to the main menu?',
+        default: true,
+      },
+    ]);
+
+    if (returnToMainMenu.returnToMainMenu) {
+      // If the user wants to return to the main menu, call the provided callback function
+      returnToMainMenuCallback();
+    } else {
+      // If the user doesn't want to return to the main menu, exit the application
+      console.log('Exiting the application.');
+      process.exit(0);
+    }
+
+  } catch (error) {
+    console.error('Error adding employee:', error);
+  }
+}
+
+const addRolePrompt = [
+  {
+    type: 'input',
+    name: 'title',
+    message: 'Enter the title of the role:',
+  },
+  {
+    type: 'input',
+    name: 'salary',
+    message: 'Enter the salary for the role:',
+  },
+  {
+    type: 'input',
+    name: 'departmentName',
+    message: 'Enter the department for the role:',
+  },
+];
+
 const exitConfirmation = [
     {
       type: 'confirm',
@@ -186,5 +281,8 @@ const exitConfirmation = [
     viewAllRoles,
     viewAllEmployees,
     addDepartmentPrompt,
+    addRolePrompt,
+    addEmployee,
+    addEmployeePrompt,
     exitConfirmation,
   };
