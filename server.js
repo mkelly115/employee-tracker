@@ -33,7 +33,8 @@ async function mainMenu() {
         mainMenu();
         break;
       case 'Update an employee role':
-        await updateEmployeeRole();
+        await prompts.updateEmployeeRole();
+        mainMenu();
         break;
       case 'Exit':
         await exitApplication();

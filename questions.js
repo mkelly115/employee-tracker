@@ -198,7 +198,7 @@ const addEmployeePrompt = [
   }
 ];
 
-// uses a callback function to ask the user if they wish to return to the main menu
+// uses a callback function to ask the user if they wish to return to the main menu (Switched to kickback as seen in add role)
 async function addEmployee() {
   try {
     const employeeData = await inquirer.prompt([...addEmployeePrompt]);
@@ -211,22 +211,6 @@ async function addEmployee() {
     ]);
 
     console.log(`Employee ${employeeData.firstName} ${employeeData.lastName} added successfully. Employee ID: ${result.insertId}`);
-
-    // const returnToMainMenu = await inquirer.prompt([
-    //   {
-    //     type: 'confirm',
-    //     name: 'returnToMainMenu',
-    //     message: 'Do you want to return to the main menu?',
-    //     default: true,
-    //   },
-    // ]);
-
-    // if (returnToMainMenu.returnToMainMenu) {
-    //   returnToMainMenuCallback();
-    // } else {
-    //   console.log('Exiting the application.');
-    //   process.exit(0);
-    // }
 
   } catch (error) {
     console.error('Error adding employee:', error);
@@ -278,6 +262,54 @@ const addRole = async () => {
   }
 };
 
+const updateEmployeeRolePrompt = [
+  {
+    type: 'list',
+    name: 'employeeId',
+    message: 'Select the employee you want to update:',
+    choices: async () => {
+      try {
+        const [rows] = await db.query('SELECT id, CONCAT(first_name, " ", last_name) AS fullName FROM employee');
+        return rows.map(employee => ({ name: employee.fullName, value: employee.id }));
+      } catch (error) {
+        console.error('Error fetching employees:', error);
+        return [{ name: 'Error fetching employees.', value: 'error' }];
+      }
+    },
+  },
+  {
+    type: 'list',
+    name: 'newRoleId',
+    message: 'Select the new role for the employee:',
+    choices: async () => {
+      try {
+        const [rows] = await db.query('SELECT id, title FROM role');
+        return rows.map(role => ({ name: role.title, value: role.id }));
+      } catch (error) {
+        console.error('Error fetching roles:', error);
+        return [{ name: 'Error fetching roles.', value: 'error' }];
+      }
+    },
+  },
+];
+
+async function updateEmployeeRole() {
+  try {
+    const updateEmployeeRoleData = await inquirer.prompt([...updateEmployeeRolePrompt]);
+    console.log('Update Employee Role Data:', updateEmployeeRoleData); 
+   
+    const [result] = await db.execute('UPDATE employee SET role_id = ? WHERE id = ?', [
+      updateEmployeeRoleData.newRoleId,
+      updateEmployeeRoleData.employeeId,
+    ]);
+
+    console.log(`Employee role updated successfully. Employee ID: ${updateEmployeeRoleData.employeeId}`);
+    // mainMenu();
+  } catch (error) {
+    console.error('Error updating employee role:', error);
+  }
+}
+
 const exitConfirmation = [
     {
       type: 'confirm',
@@ -298,5 +330,7 @@ const exitConfirmation = [
     addRole,
     addEmployee,
     addEmployeePrompt,
+    updateEmployeeRolePrompt,
+    updateEmployeeRole,
     exitConfirmation,
   };
